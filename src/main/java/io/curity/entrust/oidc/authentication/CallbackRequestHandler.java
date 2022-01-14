@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.curity.entrust.oidc.authentication.Util.createIssuerFromEnvironmentAndName;
 import static io.curity.entrust.oidc.authentication.Util.createRedirectUri;
 import static io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig.AuthenticationMethod.FORM_POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -138,7 +139,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
     private WebServiceClient getWebServiceClient()
     {
         Optional<HttpClient> httpClient = _config.getHttpClient();
-        URI issuerUri = Util.createIssuerFromEnvironmentAndName(_config);
+        URI issuerUri = createIssuerFromEnvironmentAndName(_config);
 
         if (httpClient.isPresent())
         {
@@ -173,8 +174,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
     private Map<String, String> createPostData(String code, String callbackUri)
     {
         Map<String, String> postData = new HashMap<>(5);
-        String codeVerifier = //"jYW5uS0k2lCWlQ7VscZXKyC7crbJZbX9X27np6Z0L38KvatMWnnrwjcpWOp9NKysnusygE8W6s7k6LYxi2YXS5AnKID0Yceb3ff8vMYV7gEsw4Eue1ZwDOgC1UUgWuaW";
-                _config.getSessionManager().get("code_verifier").getValueOfType(String.class);
+        String codeVerifier = _config.getSessionManager().get("code_verifier").getValueOfType(String.class);
 
         _logger.debug("Code verifier = {}", codeVerifier);
 
