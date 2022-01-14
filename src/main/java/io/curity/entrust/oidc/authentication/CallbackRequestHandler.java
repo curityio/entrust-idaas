@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static io.curity.entrust.oidc.authentication.Util.createRedirectUri;
 import static io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig.AuthenticationMethod.FORM_POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static se.curity.identityserver.sdk.http.HttpRequest.createFormUrlEncodedBodyProcessor;
@@ -76,10 +77,12 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
         handleError(requestModel);
 
         Map<String, ?> tokenResponseData = redeemCodeForTokens(requestModel);
-
+        String encodedIdTokenBody = tokenResponseData.get("id_token").toString().split("\\.", 3)[1];
+        String idTokenBody = new String(Base64.getDecoder().decode(encodedIdTokenBody));
+        Map<String, ?> idTokenJson = _json.fromJson(idTokenBody);
         AuthenticationAttributes attributes = AuthenticationAttributes.of(
-                SubjectAttributes.of(tokenResponseData.get("sub").toString()),
-                ContextAttributes.of(Map.of("acr", tokenResponseData.get("acr").toString())));
+                SubjectAttributes.of(idTokenJson.get("sub").toString()),
+                ContextAttributes.of(Map.of("acr", idTokenJson.get("acr").toString())));
 
         return Optional.of(new AuthenticationResult(attributes));
     }
@@ -87,7 +90,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
     private Map<String, Object> redeemCodeForTokens(CallbackRequestModel requestModel)
     {
         HttpRequest.Builder request = getWebServiceClient()
-                .withPath("/api/oidc/token")
+                .withPath("/token")
                 .request()
                 .contentType("application/x-www-form-urlencoded")
                 .body(getFormEncodedBodyFrom(requestModel));
@@ -121,7 +124,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
 
     private HttpRequest.BodyProcessor getFormEncodedBodyFrom(CallbackRequestModel requestModel)
     {
-        Map<String, String> postData = createPostData(requestModel.getCode(), requestModel.getRequestUrl());
+        Map<String, String> postData = createPostData(requestModel.getCode(), createRedirectUri(_config));
 
         if (_isFormPost)
         {
@@ -135,13 +138,13 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
     private WebServiceClient getWebServiceClient()
     {
         Optional<HttpClient> httpClient = _config.getHttpClient();
-        URI issuerUri = IssuerFactory.createIssuerFromEnvironmentAndName(_config);
+        URI issuerUri = Util.createIssuerFromEnvironmentAndName(_config);
 
         if (httpClient.isPresent())
         {
             return _webServiceClientFactory.create(httpClient.get(), issuerUri.getPort())
-                    .withHost(issuerUri.getAuthority())
-                    .withPath(issuerUri.getPath() + "/token");
+                    .withHost(issuerUri.getHost())
+                    .withPath(issuerUri.getPath());
         }
         else
         {
@@ -170,7 +173,8 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
     private Map<String, String> createPostData(String code, String callbackUri)
     {
         Map<String, String> postData = new HashMap<>(5);
-        String codeVerifier = _config.getSessionManager().get("code_verifier").getValueOfType(String.class);
+        String codeVerifier = //"jYW5uS0k2lCWlQ7VscZXKyC7crbJZbX9X27np6Z0L38KvatMWnnrwjcpWOp9NKysnusygE8W6s7k6LYxi2YXS5AnKID0Yceb3ff8vMYV7gEsw4Eue1ZwDOgC1UUgWuaW";
+                _config.getSessionManager().get("code_verifier").getValueOfType(String.class);
 
         _logger.debug("Code verifier = {}", codeVerifier);
 

@@ -13,7 +13,6 @@ class CallbackRequestModel
     @Nullable
     private final String _errorDescription;
 
-    private final String _url;
     private final String _code;
 //    private final String _state;
 
@@ -26,7 +25,6 @@ class CallbackRequestModel
 //        _state = request.getQueryParameterValueOrError("state", invalidParameter);
         _error = request.getQueryParameterValueOrError("error", invalidParameter);
         _errorDescription = request.getQueryParameterValueOrError("error_description", invalidParameter);
-        _url = request.getUrl();
     }
 
     public String getCode()
@@ -43,11 +41,6 @@ class CallbackRequestModel
     public String getErrorDescription()
     {
         return _errorDescription;
-    }
-
-    public String getRequestUrl()
-    {
-        return _url;
     }
 
     @Nullable

@@ -1,13 +1,14 @@
 package io.curity.entrust.oidc.authentication;
 
+import com.google.common.hash.Hashing;
 import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.curity.identityserver.sdk.attribute.Attribute;
 import se.curity.identityserver.sdk.authentication.AuthenticationResult;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
 import se.curity.identityserver.sdk.errors.ErrorCode;
-import se.curity.identityserver.sdk.http.RedirectStatusCode;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
 import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
 import se.curity.identityserver.sdk.web.Request;
@@ -16,22 +17,15 @@ import se.curity.identityserver.sdk.web.Response;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
-import java.util.UUID;
 
-import static io.curity.entrust.oidc.authentication.IssuerFactory.createIssuerFromEnvironmentAndName;
+import static io.curity.entrust.oidc.authentication.Util.createIssuerFromEnvironmentAndName;
+import static io.curity.entrust.oidc.authentication.Util.createRedirectUri;
 import static io.curity.entrust.oidc.descriptor.EntrustAuthenticatorPluginDescriptor.CALLBACK;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static se.curity.identityserver.sdk.http.RedirectStatusCode.MOVED_TEMPORARILY;
@@ -57,7 +51,7 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
     {
         _logger.debug("GET request received for authentication");
 
-        String redirectUri = createRedirectUri();
+        String redirectUri = createRedirectUri(_config);
         String codeVerifier = createCodeVerifier();
         Map<String, Collection<String>> queryStringArguments = new LinkedHashMap<>(6);
 
@@ -83,48 +77,17 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
 
     private static String createCodeVerifier()
     {
-        int codeVerifierLength = 128;
-        char[] allAllowed = "abcdefghijklmnopqrstuvwxyzABCDEFGJKLMNPRSTUVWXYZ0123456789".toCharArray();
-        int allAllowedLength = allAllowed.length;
-        Random random = new SecureRandom();
-        StringBuilder codeVerifier = new StringBuilder();
+        final int CHALLENGE_LENGTH = 128;
 
-        for (int i = 0; i < codeVerifierLength; i++)
-        {
-            codeVerifier.append(allAllowed[random.nextInt(allAllowedLength)]);
-        }
-
-        return codeVerifier.toString();
+        return RandomStringUtils.randomAlphanumeric(CHALLENGE_LENGTH);
     }
 
     private String sha256Hash(String codeVerifier)
     {
-        MessageDigest messageDigest = getMessageDigest();
-        byte[] digest = messageDigest.digest(codeVerifier.getBytes(US_ASCII));
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
-    }
+        //noinspection UnstableApiUsage
+        byte[] sha256Hash = Hashing.sha256().hashString(codeVerifier, US_ASCII).asBytes();
 
-    private static MessageDigest getMessageDigest() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    private String createRedirectUri()
-    {
-        try
-        {
-            URI authUri = _authenticatorInformationProvider.getFullyQualifiedAuthenticationUri();
-
-            return new URL(authUri.toURL(), authUri.getPath() + "/" + CALLBACK).toString();
-        }
-        catch (MalformedURLException e)
-        {
-            throw _exceptionFactory.internalServerException(ErrorCode.INVALID_REDIRECT_URI,
-                    "Could not create redirect URI");
-        }
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(sha256Hash);
     }
 
     @Override

@@ -2,12 +2,35 @@ package io.curity.entrust.oidc.authentication;
 
 import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
 import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig.EnvironmentAndName;
+import se.curity.identityserver.sdk.errors.ErrorCode;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
-final class IssuerFactory
+import static io.curity.entrust.oidc.descriptor.EntrustAuthenticatorPluginDescriptor.CALLBACK;
+
+final class Util
 {
+    private Util()
+    {
+    }
+
+    public static String createRedirectUri(EntrustAuthenticatorPluginConfig config)
+    {
+        try
+        {
+            URI authUri = config.getAuthenticatorInformationProvider().getFullyQualifiedAuthenticationUri();
+
+            return new URL(authUri.toURL(), authUri.getPath() + "/" + CALLBACK).toString();
+        }
+        catch (MalformedURLException e)
+        {
+            throw new RuntimeException("Could not create redirect URI");
+        }
+    }
+
     public static URI createIssuerFromEnvironmentAndName(EntrustAuthenticatorPluginConfig config)
     {
         EntrustAuthenticatorPluginConfig.IssuerOrEnvironmentAndName issuerOrEnvironmentAndName =
