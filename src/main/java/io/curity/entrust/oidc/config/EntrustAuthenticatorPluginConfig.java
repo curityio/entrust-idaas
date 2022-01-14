@@ -3,11 +3,13 @@ package io.curity.entrust.oidc.config;
 
 import se.curity.identityserver.sdk.config.Configuration;
 import se.curity.identityserver.sdk.config.OneOf;
+import se.curity.identityserver.sdk.config.annotation.DefaultBoolean;
 import se.curity.identityserver.sdk.config.annotation.DefaultEnum;
 import se.curity.identityserver.sdk.config.annotation.Description;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
 import se.curity.identityserver.sdk.service.HttpClient;
 import se.curity.identityserver.sdk.service.Json;
+import se.curity.identityserver.sdk.service.OriginalQueryExtractor;
 import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.service.WebServiceClientFactory;
 import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
@@ -29,6 +31,12 @@ public interface EntrustAuthenticatorPluginConfig extends Configuration
     SessionManager getSessionManager();
 
     ExceptionFactory getExceptionFactory();
+
+    @DefaultBoolean(true)
+    @Description("Whether or not the prompt parameter should be relayed up to Entrust")
+    boolean isRelayPrompt();
+
+    OriginalQueryExtractor getOriginalQueryExtractor();
 
     IssuerOrEnvironmentAndName getIssuerOrEnvironmentAndName();
 

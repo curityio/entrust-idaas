@@ -83,7 +83,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
         Map<String, ?> idTokenJson = _json.fromJson(idTokenBody);
         AuthenticationAttributes attributes = AuthenticationAttributes.of(
                 SubjectAttributes.of(idTokenJson.get("sub").toString()),
-                ContextAttributes.of(Map.of("acr", idTokenJson.get("acr").toString())));
+                ContextAttributes.of(Map.of("upstream_acr", idTokenJson.get("acr").toString())));
 
         return Optional.of(new AuthenticationResult(attributes));
     }

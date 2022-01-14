@@ -3,11 +3,11 @@ package io.curity.entrust.oidc.authentication;
 import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.curity.identityserver.sdk.Nullable;
 import se.curity.identityserver.sdk.attribute.Attribute;
 import se.curity.identityserver.sdk.authentication.AuthenticationResult;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
-import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
 
@@ -30,17 +30,14 @@ import static se.curity.identityserver.sdk.http.RedirectStatusCode.MOVED_TEMPORA
 public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRequestHandler<Request>
 {
     private static final Logger _logger = LoggerFactory.getLogger(EntrustAuthenticatorRequestHandler.class);
-    private static final String AUTHORIZATION_ENDPOINT = "";
 
     private final EntrustAuthenticatorPluginConfig _config;
-    private final AuthenticatorInformationProvider _authenticatorInformationProvider;
     private final ExceptionFactory _exceptionFactory;
 
     public EntrustAuthenticatorRequestHandler(EntrustAuthenticatorPluginConfig config)
     {
         _config = config;
         _exceptionFactory = config.getExceptionFactory();
-        _authenticatorInformationProvider = config.getAuthenticatorInformationProvider();
     }
 
     @Override
@@ -50,7 +47,7 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
 
         String redirectUri = createRedirectUri(_config);
         String codeVerifier = createCodeVerifier();
-        Map<String, Collection<String>> queryStringArguments = new LinkedHashMap<>(6);
+        Map<String, Collection<String>> queryStringArguments = new LinkedHashMap<>(7);
 
         _config.getSessionManager().put(Attribute.of("code_verifier", codeVerifier));
 
@@ -65,11 +62,20 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
         queryStringArguments.put("response_type", Set.of("code"));
         queryStringArguments.put("scope", Set.of("openid"));
 
-        _logger.debug("Redirecting to {} with query string arguments {}", AUTHORIZATION_ENDPOINT,
+        @Nullable
+        String prompt = _config.getOriginalQueryExtractor().getAuthorizationRequestQueryParameterValue("prompt");
+
+        if (prompt != null && _config.isRelayPrompt())
+        {
+            queryStringArguments.put("prompt", Set.of(prompt));
+        }
+
+        String authorizationEndpoint = createIssuerFromEnvironmentAndName(_config) + "/authorize";
+
+        _logger.debug("Redirecting to {} with query string arguments {}", authorizationEndpoint,
                 queryStringArguments);
 
-        throw _exceptionFactory.redirectException(createIssuerFromEnvironmentAndName(_config) + "/authorize",
-                                                  MOVED_TEMPORARILY, queryStringArguments, false);
+        throw _exceptionFactory.redirectException(authorizationEndpoint, MOVED_TEMPORARILY, queryStringArguments, false);
     }
 
     private static String createCodeVerifier()
@@ -88,7 +94,7 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
         return codeVerifier.toString();
     }
 
-    private String sha256Hash(String codeVerifier)
+    private static String sha256Hash(String codeVerifier)
     {
         MessageDigest messageDigest = getMessageDigest();
         byte[] digest = messageDigest.digest(codeVerifier.getBytes(US_ASCII));
