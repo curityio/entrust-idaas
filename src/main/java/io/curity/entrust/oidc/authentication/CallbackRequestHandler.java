@@ -173,7 +173,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
 
     private Map<String, String> createPostData(String code, String callbackUri)
     {
-        Map<String, String> postData = new HashMap<>(5);
+        Map<String, String> postData = new HashMap<>(7);
         String codeVerifier = _config.getSessionManager().get("code_verifier").getValueOfType(String.class);
 
         _logger.debug("Code verifier = {}", codeVerifier);
