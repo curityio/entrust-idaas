@@ -1,21 +1,19 @@
 Entrust IDaaS Authenticator Plug-in
 ===================================
 
-.. image:: https://travis-ci.org/curityio/entrust-oidc-authenticator.svg?branch=dev
-     :target: https://travis-ci.org/curityio/entrust-oidc-authenticator
-
 This project provides an open source Entrust IDaaS authenticator plug-in for the Curity Identity Server. This allows an administrator to add functionality to Curity which will then enable end users to login using their Entrust credentials.
 
 System Requirements
 ~~~~~~~~~~~~~~~~~~~
 
-* Curity Identity Server 5.0.0 and `its system requirements <https://developer.curity.io/docs/latest/system-admin-guide/system-requirements.html>`_ The Entrust logo will only be shown on the authenticator in the admin UI if using version 6.7.3 or newer.
+* Curity Identity Server 5.0.0 and `its system requirements <https://developer.curity.io/docs/latest/system-admin-guide/system-requirements.html>`_
+* The Entrust logo will only be shown in the Curity admin UI for instances of this authenticator if using version 6.7.3 or newer.
 
 Requirements for Building from Source
 """""""""""""""""""""""""""""""""""""
 
 * Maven 3
-* OpenJDK v. 11
+* OpenJDK 11
 
 Compiling the Plug-in from Source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,7 +23,7 @@ The source is very easy to compile. To do so from a shell, issue this command: `
 Installation
 ~~~~~~~~~~~~
 
-To install this plug-in, either download a binary version available from the `releases section of this project's GitHub repository <https://github.com/curityio/entrust-oidc-authenticator/releases>`_ or compile it from source (as described above). If you compiled the plug-in from source, the package will be placed in the ``target`` subdirectory. The resulting JAR file or the one downloaded from GitHub needs to placed in the directory ``${IDSVR_HOME}/usr/share/plugins/entrust-idaas`` of each node. (The name of the last directory, ``entrust-idaas``, which is the plug-in group, is arbitrary and can be anything.) After doing so, the plug-in will become available as soon as the node is restarted.
+To install this plug-in, either download a binary version available from the `releases section of this project's GitHub repository <https://github.com/curityio/entrust-idaas-authenticator/releases>`_ or compile it from source (as described above). If you compiled the plug-in from source, the package will be placed in the ``target`` subdirectory. The resulting JAR file or the one downloaded from GitHub needs to placed in the directory ``${IDSVR_HOME}/usr/share/plugins/entrust-idaas`` of each node. (The name of the last directory, ``entrust-idaas``, which is the plug-in group, is arbitrary and can be anything.) After doing so, the plug-in will become available as soon as the node is restarted.
 
 .. note::
 
@@ -79,7 +77,7 @@ URI Component                  Meaning
     If the app configuration in Entrust does not allow a certain scope (e.g., the ``Read Email Address`` scope) but that scope is enabled in the authenticator in Curity, a server error will result. For this reason, it is important to align these two configurations or not to define any when configuring the plug-in in Curity.
 
 Creating a Entrust Authenticator in Curity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The easiest way to configure a new Entrust authenticator is using the Curity admin UI. The configuration for this can be downloaded as XML or CLI commands later, so only the steps to do this in the GUI will be described.
 
@@ -88,33 +86,29 @@ The easiest way to configure a new Entrust authenticator is using the Curity adm
 3. Enter a name (e.g., ``entrust1``). This name needs to match the URI component in the callback URI set in the Entrust app.
 4. For the type, pick the ``Entrust`` option:
 
-    .. figure:: docs/images/entrust-idaas-authenticator-type-in-curity.png
-        :align: center
-        :width: 600px
+.. figure:: docs/images/entrust-idaas-authenticator-type-in-curity.png
+    :align: center
+    :width: 600px
 
 5. On the next page, you can define all of the standard authenticator configuration options like any previous authenticator that should run, the resulting ACR, transformers that should executed, etc. At the top of the configuration page, the Entrust-IDaaS-specific options can be found.
 
-        .. note::
+.. note::
 
-        The Entrust-IDaaS-specific configuration is generated dynamically based on the `configuration model defined in the Java interface <https://github.com/curityio/entrust-oidc-authenticator/blob/master/src/main/java/io/curity/identityserver/plugin/entrust-idaas/config/EntrustAuthenticatorPluginConfig.java>`_.
+    The Entrust-IDaaS-specific configuration is generated dynamically based on the `configuration model defined in the Java interface <https://github.com/curityio/entrust-oidc-authenticator/blob/master/src/main/java/io/curity/identityserver/plugin/entrust-idaas/config/EntrustAuthenticatorPluginConfig.java>`_.
 
-6. Certain required and optional configuration settings may be provided. One of these is the ``HTTP Client`` setting. This is the HTTP client that will be used to communicate with the Entrust IDaaS OpenID Connect provider's token and user info endpoints. To define this, do the following:
+6. In the ``Client ID`` text field, enter the ``Client ID`` from the Entrust IDaaS client application.
+7. Also enter the matching ``Client Secret``.
+8. If you wish to request additional scopes from Entrust IDaaS, enter each one in the ``Additional Scopes`` multi-select widget (e.g., ``address`` or ``profile``).
+9. The ``Authentication Method`` should match the configuration for the client in Entrust IDaaS. The default is ``basic`` authentication.
+10. If ``Relay Prompt`` is configured and an OAuth client sends a ``prompt`` to the Curity OAuth server, then this parameter will be forwarded upstream to Entrust IDaaS.
+11. In the ``Issuer or Environment and Name`` dropdown select and configure one of the following:
 
-    A. Click the ``Facilities`` button at the top-right of the screen.
-    B. Next to ``HTTP``, click ``New``.
-    C. Enter some name (e.g., ``entrust-oidcClient``).
+    A. ``environment-and-name`` can be selected and one of the environments where your Entrust IDaaS is hosted should be selected. In this case, the instance name also has to be configured.
+    B. ``issuer`` can be selected and the Entrust IDaaS OpenID Connect issuer URL can be configured.
 
-        .. figure:: docs/images/entrust-idaas-http-client.png
-            :align: center
-            :width: 400px
+.. note::
 
-7. Back in the Entrust authenticator instance that you started to define, select the new HTTP client from the dropdown.
-
-        .. figure:: docs/images/http-client.png
-
-8. In the ``Client ID`` text field, enter the ``Client ID`` from the Entrust IDaaS client app.
-9. Also enter the matching ``Client Secret``.
-10. If you wish to request additional scopes from Entrust IDaaS, enter each one in the ``Additional Scopes`` widget (e.g., ``address`` or ``profile``).
+    If you need to contact the Entrust IDaaS web services via a proxy, then you should also configure the optional HTTP client. This can be done by `following the as described in the reference manual <https://curity.io/docs/idsvr/latest/system-admin-guide/http-clients/index.html>`_
 
 Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally, enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
 
