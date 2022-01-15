@@ -25,9 +25,10 @@ Installation
 
 To install this plug-in, either download a binary version available from the `releases section of this project's GitHub repository <https://github.com/curityio/entrust-idaas-authenticator/releases>`_ or compile it from source (as described above). If you compiled the plug-in from source, the package will be placed in the ``target`` subdirectory. The resulting JAR file or the one downloaded from GitHub needs to placed in the directory ``${IDSVR_HOME}/usr/share/plugins/entrust-idaas`` of each node. (The name of the last directory, ``entrust-idaas``, which is the plug-in group, is arbitrary and can be anything.) After doing so, the plug-in will become available as soon as the node is restarted.
 
-.. note::
-
+    📝 **Note**
+    
     The JAR file needs to be deployed to each run-time node and the admin node. For simple test deployments where the admin node is a run-time node, the JAR file only needs to be copied to one location.
+
 
 For a more detailed explanation of installing plug-ins, refer to the `Curity developer guide <https://developer.curity.io/docs/latest/developer-guide/plugins/index.html#plugin-installation>`_.
 
@@ -76,25 +77,25 @@ URI Component                  Meaning
 
     If the app configuration in Entrust does not allow a certain scope (e.g., the ``Read Email Address`` scope) but that scope is enabled in the authenticator in Curity, a server error will result. For this reason, it is important to align these two configurations or not to define any when configuring the plug-in in Curity.
 
-Creating a Entrust Authenticator in Curity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Creating an Entrust IDaaS Authenticator in Curity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The easiest way to configure a new Entrust authenticator is using the Curity admin UI. The configuration for this can be downloaded as XML or CLI commands later, so only the steps to do this in the GUI will be described.
 
 1. Go to the ``Authenticators`` page of the authentication profile wherein the authenticator instance should be created.
 2. Click the ``New Authenticator`` button.
 3. Enter a name (e.g., ``entrust1``). This name needs to match the URI component in the callback URI set in the Entrust app.
-4. For the type, pick the ``Entrust`` option:
+4. For the type, pick the ``Entrust`` option and click ``Next``.
+5. On the next page, you can define all of the standard authenticator configuration options like any previous authenticator that should run, the resulting ACR, transformers that should executed, etc. 
 
 .. figure:: docs/images/entrust-idaas-authenticator-type-in-curity.png
     :align: center
     :width: 600px
 
-5. On the next page, you can define all of the standard authenticator configuration options like any previous authenticator that should run, the resulting ACR, transformers that should executed, etc. At the top of the configuration page, the Entrust-IDaaS-specific options can be found.
+    At the top of the configuration page, the Entrust-IDaaS-specific options can be found.
 
-.. note::
-
-    The Entrust-IDaaS-specific configuration is generated dynamically based on the `configuration model defined in the Java interface <https://github.com/curityio/entrust-oidc-authenticator/blob/master/src/main/java/io/curity/identityserver/plugin/entrust-idaas/config/EntrustAuthenticatorPluginConfig.java>`_.
+        📝 **Note**
+        The Entrust-IDaaS-specific configuration is generated dynamically based on the `configuration model defined in the Java interface <https://github.com/curityio/entrust-oidc-authenticator/blob/master/src/main/java/io/curity/identityserver/plugin/entrust-idaas/config/EntrustAuthenticatorPluginConfig.java>`_.
 
 6. In the ``Client ID`` text field, enter the ``Client ID`` from the Entrust IDaaS client application.
 7. Also enter the matching ``Client Secret``.
@@ -105,14 +106,40 @@ The easiest way to configure a new Entrust authenticator is using the Curity adm
 
     A. ``environment-and-name`` can be selected and one of the environments where your Entrust IDaaS is hosted should be selected. In this case, the instance name also has to be configured.
     B. ``issuer`` can be selected and the Entrust IDaaS OpenID Connect issuer URL can be configured.
-
-.. note::
-
-    If you need to contact the Entrust IDaaS web services via a proxy, then you should also configure the optional HTTP client. This can be done by `following the as described in the reference manual <https://curity.io/docs/idsvr/latest/system-admin-guide/http-clients/index.html>`_
-
-Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally, enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
+12. Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally, enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
 
 Once the configuration is committed and running, the authenticator can be used like any other.
+
+    📝 **Note**
+    If you need to contact the Entrust IDaaS web services via a proxy, then you should also configure the optional HTTP client. This can be done by `following the as described in the reference manual <https://curity.io/docs/idsvr/latest/system-admin-guide/http-clients/index.html>`_
+
+Passing Along the ACR
+"""""""""""""""""""""
+
+To pass the Entrust IDaaS ACR down through Curity to an OAuth client, a token procedure has to be added because authenticators like the Entrust one cannot change the ACR (by design). In cases where the use of the Entrust ACR is desirable, do the following:
+
+1. Go to the ``Endpoints`` page of the applicable token service profile.
+2. Select a token endpoint and expand the flows.
+3. In the ``Authorization Code`` dropdown, click ``New procedure``. Give it a name (e.g., ``change_acr``) and click ``Save``.
+4. In the procedure that opens, modify the condition that checks ID token data. This will be on or around line 21
+
+.. code:: javascript
+
+    if (idTokenData) {
+        var idTokenIssuer = context.idTokenIssuer;
+        
+        // START ADD
+        var upstreamAcr = context.contextAttributes().upstream_acr;
+        
+        if (upstreamAcr) {
+            idTokenData.acr = idTokenData.amr = upstreamAcr;
+        }
+        // END ADD
+        
+        idTokenData.at_hash = idTokenIssuer.atHash(issuedAccessToken);
+
+        responseData.id_token = idTokenIssuer.issue(idTokenData, issuedDelegation);
+    }
 
 License
 ~~~~~~~
