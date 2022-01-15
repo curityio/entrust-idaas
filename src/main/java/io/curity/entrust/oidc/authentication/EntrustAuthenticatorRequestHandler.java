@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.curity.entrust.oidc.authentication.Util.createIssuerFromEnvironmentAndName;
 import static io.curity.entrust.oidc.authentication.Util.createRedirectUri;
@@ -55,12 +57,17 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
 
         String codeChallenge = sha256Hash(codeVerifier);
 
+        String scope = Stream.concat(_config.getAdditionalScopes().stream(), Stream.of("openid"))
+                .collect(Collectors.joining(" "));
+
+        _logger.trace("Scope that will be requested = {}", scope);
+
         queryStringArguments.put("client_id", Set.of(_config.getClientId()));
         queryStringArguments.put("redirect_uri", Set.of(redirectUri));
         queryStringArguments.put("code_challenge", Set.of(codeChallenge));
         queryStringArguments.put("code_challenge_method", Set.of("S256"));
         queryStringArguments.put("response_type", Set.of("code"));
-        queryStringArguments.put("scope", Set.of("openid"));
+        queryStringArguments.put("scope", Set.of(scope));
 
         @Nullable
         String prompt = _config.getOriginalQueryExtractor().getAuthorizationRequestQueryParameterValue("prompt");

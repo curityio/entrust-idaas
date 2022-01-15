@@ -1,6 +1,5 @@
 package io.curity.entrust.oidc.config;
 
-
 import se.curity.identityserver.sdk.config.Configuration;
 import se.curity.identityserver.sdk.config.OneOf;
 import se.curity.identityserver.sdk.config.annotation.DefaultBoolean;
@@ -14,6 +13,7 @@ import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.service.WebServiceClientFactory;
 import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
 
+import java.util.List;
 import java.util.Optional;
 
 @SuppressWarnings("InterfaceNeverImplemented")
@@ -31,6 +31,9 @@ public interface EntrustAuthenticatorPluginConfig extends Configuration
     SessionManager getSessionManager();
 
     ExceptionFactory getExceptionFactory();
+
+    @Description("Additional scopes beyond 'openid' that should be requested")
+    List<String> getAdditionalScopes();
 
     @DefaultBoolean(true)
     @Description("Whether or not the prompt parameter should be relayed up to Entrust")

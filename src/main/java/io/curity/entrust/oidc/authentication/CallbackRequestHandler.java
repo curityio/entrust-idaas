@@ -3,6 +3,7 @@ package io.curity.entrust.oidc.authentication;
 import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.curity.identityserver.sdk.Nullable;
 import se.curity.identityserver.sdk.attribute.AuthenticationAttributes;
 import se.curity.identityserver.sdk.attribute.ContextAttributes;
 import se.curity.identityserver.sdk.attribute.SubjectAttributes;
@@ -11,6 +12,7 @@ import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
 import se.curity.identityserver.sdk.errors.ErrorCode;
 import se.curity.identityserver.sdk.http.HttpRequest;
 import se.curity.identityserver.sdk.http.HttpResponse;
+import se.curity.identityserver.sdk.http.MultipleHeadersException;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
 import se.curity.identityserver.sdk.service.HttpClient;
 import se.curity.identityserver.sdk.service.Json;
@@ -23,9 +25,13 @@ import se.curity.identityserver.sdk.web.Response;
 import java.net.URI;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.curity.entrust.oidc.authentication.Util.createIssuerFromEnvironmentAndName;
 import static io.curity.entrust.oidc.authentication.Util.createRedirectUri;
@@ -78,14 +84,151 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
         handleError(requestModel);
 
         Map<String, ?> tokenResponseData = redeemCodeForTokens(requestModel);
-        String encodedIdTokenBody = tokenResponseData.get("id_token").toString().split("\\.", 3)[1];
-        String idTokenBody = new String(Base64.getDecoder().decode(encodedIdTokenBody));
-        Map<String, ?> idTokenJson = _json.fromJson(idTokenBody);
+        String accessToken = Objects.toString(tokenResponseData.get("access_token"));
+        Map<String, ?> idTokenJson = getIdTokenJson(tokenResponseData);
         AuthenticationAttributes attributes = AuthenticationAttributes.of(
-                SubjectAttributes.of(idTokenJson.get("sub").toString()),
-                ContextAttributes.of(Map.of("upstream_acr", idTokenJson.get("acr").toString())));
+                SubjectAttributes.of(getSubjectAttributes(idTokenJson, accessToken)),
+                ContextAttributes.of(getContextAttributes(idTokenJson)));
+
+        _logger.trace("Entrust Access Token = {}", accessToken);
 
         return Optional.of(new AuthenticationResult(attributes));
+    }
+
+    private Map<String, ?> getSubjectAttributes(Map<String, ?> idTokenJson, String accessToken)
+    {
+        // Pass through all claims received from Entrust except system claims and ones with a null value
+        // Also pass through user info if configured to call that
+
+        Set<String> systemClaimNames = Set.of("iss", "aud", "exp", "iat", "auth_time", "nonce", "acr",
+                                              "amr", "azp", "nbf", "jti");
+        Map<String, ?> userInfo = getUserInfo(accessToken);
+
+        Map<String, ?> subjectAttributes = Stream.concat(idTokenJson.entrySet().stream(), userInfo.entrySet().stream())
+                .filter(it -> it.getValue() != null && !systemClaimNames.contains(it.getKey()))
+                .map(it ->
+                     {
+                         if ("sub".equals(it.getKey()))
+                         {
+                             return Map.entry("subject", it.getValue());
+                         }
+                         return it;
+                     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                                                 // *OBS* User info supersedes if present in both
+                                                 (idTokenValue, userInfoValue) -> userInfoValue));
+
+        if (_logger.isDebugEnabled())
+        {
+            _logger.debug("ID token{}claims from Entrust = {}, resulting subject attributes = {}",
+                          _config.getAdditionalScopes().size() > 0 ? " and user info " : " ",
+                          idTokenJson, subjectAttributes);
+        }
+
+        return subjectAttributes;
+    }
+
+    private Map<String, ?> getIdTokenJson(Map<String, ?> tokenResponseData)
+    {
+        return getTokenJson(tokenResponseData.get("id_token").toString());
+    }
+
+    private Map<String, ?> getTokenJson(String encodedToken)
+    {
+        // Why do we not check the signature of this token? See section 3.1.3.7.6 of OIDC core.
+        String[] encodedBodyParts = encodedToken.split("\\.", 3);
+
+        if (encodedBodyParts.length != 3)
+        {
+            _logger.warn("Expected a signed JWT (JWS), but didn't find one. Value = {}", encodedToken);
+
+            throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        }
+
+        String encodedBody = encodedBodyParts[1];
+        String tokenBody = new String(Base64.getDecoder().decode(encodedBody));
+
+        return _json.fromJson(tokenBody);
+    }
+
+    private Map<String, ?> getUserInfo(String accessToken)
+    {
+        if (_config.getAdditionalScopes().isEmpty())
+        {
+            _logger.debug("Not fetching user info because additional scope is empty");
+
+            return Map.of();
+        }
+
+        _logger.debug("Fetching user info");
+
+        // Fetch user info
+        HttpResponse userInfoResponse = getWebServiceClient()
+                .withPath("/userinfo")
+                .request()
+                .header("Authorization", "Bearer " + accessToken)
+                .get()
+                .response();
+
+        throwIfServerError(userInfoResponse, "Got an error response from user info endpoint");
+
+        Map<String, ?> userInfoJson = parseUserInfoResponse(userInfoResponse);
+
+        _logger.debug("User info = {}", userInfoJson);
+
+        return userInfoJson;
+    }
+
+    private Map<String, ?> parseUserInfoResponse(HttpResponse userInfoResponse)
+    {
+        Map<String, ?> userInfoJson;
+        String contentType = getContentType(userInfoResponse)
+                .replace(" ", ""); // Just in case content-type is something like "application / json"
+
+        if (contentType.startsWith("application/json"))
+        {
+            userInfoJson = userInfoResponse.body((HttpResponse.asJsonObject(_json)));
+        }
+        else if (contentType.startsWith("application/jwt"))
+        {
+            userInfoJson = getTokenJson(userInfoResponse.body(HttpResponse.asString()));
+        }
+        else
+        {
+            _logger.warn("Entrust returned an unexpected content type: {}", contentType);
+
+            userInfoJson = Map.of();
+        }
+
+        return userInfoJson;
+    }
+
+    private String getContentType(HttpResponse userInfoResponse)
+    {
+        try
+        {
+            @Nullable
+            String contentType = userInfoResponse.headers().singleValueOrError("Content-Type");
+
+            if (contentType == null)
+            {
+                _logger.warn("Entrust did not return a content-type");
+
+                throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+            }
+
+            return contentType.toLowerCase(Locale.ROOT);
+        }
+        catch (MultipleHeadersException e)
+        {
+            _logger.warn("Entrust returned multiple Content-Type headers");
+
+            throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
+        }
+    }
+
+    private static Map<String, String> getContextAttributes(Map<String, ?> idTokenJson)
+    {
+        return Map.of("upstream_acr", idTokenJson.get("acr").toString());
     }
 
     private Map<String, Object> redeemCodeForTokens(CallbackRequestModel requestModel)
@@ -107,20 +250,24 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
                 .post()
                 .response();
 
-        int statusCode = tokenResponse.statusCode();
+        throwIfServerError(tokenResponse, "Got error response from token endpoint");
+
+        return _json.fromJson(tokenResponse.body(HttpResponse.asString()));
+    }
+
+    private void throwIfServerError(HttpResponse response, String message)
+    {
+        int statusCode = response.statusCode();
 
         if (statusCode != 200)
         {
-            if (_logger.isInfoEnabled())
+            if (_logger.isWarnEnabled())
             {
-                _logger.info("Got error response from token endpoint: error = {}, {}", statusCode,
-                        tokenResponse.body(HttpResponse.asString()));
+                _logger.warn("{}}: error = {}, {}", message, statusCode, response.body(HttpResponse.asString()));
             }
 
             throw _exceptionFactory.internalServerException(ErrorCode.EXTERNAL_SERVICE_ERROR);
         }
-
-        return _json.fromJson(tokenResponse.body(HttpResponse.asString()));
     }
 
     private HttpRequest.BodyProcessor getFormEncodedBodyFrom(CallbackRequestModel requestModel)
