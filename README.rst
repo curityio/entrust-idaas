@@ -6,7 +6,8 @@ This project provides an open source Entrust IDaaS authenticator plug-in for the
 Curity can be integrated with Entrust IDaaS in multiple ways. This authenticator is only needed when Curity is functioning as a *relay* or OpenID Connect *proxy* between Entrust IDaaS and a downstream client. This setup is shown in the following figure:
 
 .. figure:: docs/images/entrust_authenticator_overview.jpg
-    :width: 600px
+    :width: 800px
+    :align: center
 
 In this figure, the user operating a user agent, like a browser will make a request to a client application. This application (also known as a relying party) is probably made or procured by you and is the one you're using Curity to protect. When the user requests access to this application without a session (step 1 in the figure), they are redirected to Curity (step 2) using OpenID Connect or OAuth. The client is configured to use the Entrust IDaaS authenticator or will manually select it from a list of allowed authenticators. Either way, the user will be redirected to Entrust IDaaS using OpenID Connect (step 3). There, the user will login, and be redirected back to Curity. Curity will complete the OpenID Connect flow by redeeming the authorization code it receives, and calling the user info endpoint of Entrust IDaaS as needed. At this point, the user agent will be redirected back to the application (step 4). Typically, it will create a session for the user at this point and be logged in (step 5).
 
