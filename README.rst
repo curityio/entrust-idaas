@@ -43,7 +43,7 @@ For a more detailed explanation of installing plug-ins, refer to the `Curity dev
 Creating an App in Entrust
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As `described in the Entrust IDaaS documentation <https://entrust.us.trustedauth.com/documentation/help/admin/index.htm#t=Shared%2FWelcome.htm&rhsearch=groups%20claim&rhsyns=%20>`_, you can `create a generic OIDC and OAuth Web application <https://entrust.us.trustedauth.com/documentation/help/admin/index.htm#t=Resources%2FAdd_Generic_OIDC_application.htm&rhsearch=groups%20claim&rhsyns=%20>`_ that can be used to authenticate Entrust IDaaS users to your instance of Curty. To do this, follow these steps in the Entrust IDaaS administrative console:
+As `described in the Entrust IDaaS documentation <https://entrust.us.trustedauth.com/documentation/help/admin/index.htm#t=Shared%2FWelcome.htm&rhsearch=groups%20claim&rhsyns=%20>`_, you can `create a generic OIDC and OAuth Web application <https://entrust.us.trustedauth.com/documentation/help/admin/index.htm#t=Resources%2FAdd_Generic_OIDC_application.htm&rhsearch=groups%20claim&rhsyns=%20>`_ that can be used to authenticate Entrust IDaaS users to your instance of Curity. To do this, follow these steps in the Entrust IDaaS administrative console:
 
 1. From the dashboard, click ``Applications`` or click the menu button and select ``Resources`` and then ``Applications``.
 
@@ -153,6 +153,19 @@ All of the claims issued by Entrust IDaaS are saved in the authentication attrib
 
 1. Ensure that a claims provider of type ``authentication-subject-claims-provider`` is configured.
 2. For some claims that the downstream OAuth client will request of Curity, ensure that it gets its source from the authentication attributes. If these do not exactly match the ones asserted by Entrust IDaaS, they'll need to be mapped. When they do though, they can be used without mapping. In the later case, if Entrust IDaaS is configured with an additional scope of ``profile``, then a claim of ``given_name`` will be asserted by it. For this same claim in Curity, use the authentication attributes as its source. Then, for any downstream client that requests the ``profile`` scope from Curity, the value from Entrust IDaaS will be used.
+
+Restricting Clients to the Entrust IDaaS Authenticator
+""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+To avoid the authenticator selection screen in Curity, an OAuth client needs to be configured to only allow login using the Entrust IDaaS authenticator. This can be done by performing the following steps:
+
+1. Go to the ``Clients`` page of the token service profile that is associated with the authentication profile wherein the Entrust IDaaS authenticator is configured.
+2. Select the applicable client (or create a new one).
+3. Click on ``User Authentication`` from the nav bar at the top of the page or scroll to the end of the page.
+4. Click the ``Allow only selected authenticators``.
+5. Select the Entrust IDaaS authenticator that was previously configured.
+
+With this done, no user interface will be shown by Curity as the user is relayed to Entrust IDaaS.
 
 License
 ~~~~~~~
