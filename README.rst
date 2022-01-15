@@ -92,7 +92,7 @@ The easiest way to configure a new Entrust authenticator is using the Curity adm
 
         📝 **Note**
 
-        The Entrust-IDaaS-specific configuration is generated dynamically based on the `configuration model defined in the Java interface <https://github.com/curityio/entrust-oidc-authenticator/blob/master/src/main/java/io/curity/identityserver/plugin/entrust-idaas/config/EntrustAuthenticatorPluginConfig.java>`_.
+        The Entrust-IDaaS-specific configuration is generated dynamically based on the `configuration model defined in the Java interface <https://github.com/curityio/entrust-idaas/blob/main/src/main/java/io/curity/entrust/idaas/config/EntrustAuthenticatorPluginConfig.java>`_.
 
 6. In the ``Client ID`` text field, enter the ``Client ID`` from the Entrust IDaaS client application.
 7. Also enter the matching ``Client Secret``.
