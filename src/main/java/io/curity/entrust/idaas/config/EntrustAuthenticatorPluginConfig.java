@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.entrust.oidc.config;
+package io.curity.entrust.idaas.config;
 
 import se.curity.identityserver.sdk.config.Configuration;
 import se.curity.identityserver.sdk.config.OneOf;

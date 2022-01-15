@@ -14,17 +14,17 @@
  *  limitations under the License.
  */
 
-package io.curity.entrust.oidc.authentication;
+package io.curity.entrust.idaas.authentication;
 
-import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
-import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig.EnvironmentAndName;
+import io.curity.entrust.idaas.config.EntrustAuthenticatorPluginConfig;
+import io.curity.entrust.idaas.config.EntrustAuthenticatorPluginConfig.EnvironmentAndName;
 
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import static io.curity.entrust.oidc.descriptor.EntrustAuthenticatorPluginDescriptor.CALLBACK;
+import static io.curity.entrust.idaas.descriptor.EntrustAuthenticatorPluginDescriptor.CALLBACK;
 
 final class Util
 {

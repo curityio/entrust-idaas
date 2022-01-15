@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-package io.curity.entrust.oidc.descriptor;
+package io.curity.entrust.idaas.descriptor;
 
-import io.curity.entrust.oidc.authentication.CallbackRequestHandler;
-import io.curity.entrust.oidc.authentication.EntrustAuthenticatorRequestHandler;
-import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
+import io.curity.entrust.idaas.authentication.CallbackRequestHandler;
+import io.curity.entrust.idaas.authentication.EntrustAuthenticatorRequestHandler;
+import io.curity.entrust.idaas.config.EntrustAuthenticatorPluginConfig;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
 import se.curity.identityserver.sdk.plugin.descriptor.AuthenticatorPluginDescriptor;
 

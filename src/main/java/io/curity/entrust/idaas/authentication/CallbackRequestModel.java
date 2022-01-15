@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package io.curity.entrust.oidc.authentication;
+package io.curity.entrust.idaas.authentication;
 
 import se.curity.identityserver.sdk.Nullable;
 import se.curity.identityserver.sdk.web.Request;

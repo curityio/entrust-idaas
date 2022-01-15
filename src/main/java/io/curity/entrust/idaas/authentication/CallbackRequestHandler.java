@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-package io.curity.entrust.oidc.authentication;
+package io.curity.entrust.idaas.authentication;
 
-import io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig;
+import io.curity.entrust.idaas.config.EntrustAuthenticatorPluginConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.curity.identityserver.sdk.Nullable;
@@ -49,9 +49,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.curity.entrust.oidc.authentication.Util.createIssuerFromEnvironmentAndName;
-import static io.curity.entrust.oidc.authentication.Util.createRedirectUri;
-import static io.curity.entrust.oidc.config.EntrustAuthenticatorPluginConfig.AuthenticationMethod.FORM_POST;
+import static io.curity.entrust.idaas.authentication.Util.createIssuerFromEnvironmentAndName;
+import static io.curity.entrust.idaas.authentication.Util.createRedirectUri;
+import static io.curity.entrust.idaas.config.EntrustAuthenticatorPluginConfig.AuthenticationMethod.FORM_POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static se.curity.identityserver.sdk.http.HttpRequest.createFormUrlEncodedBodyProcessor;
 
