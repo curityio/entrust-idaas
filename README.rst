@@ -14,7 +14,7 @@ In this figure, the user operating a user agent, like a browser will make a requ
 System Requirements
 ~~~~~~~~~~~~~~~~~~~
 
-* Curity Identity Server 5.0.0 and `its system requirements <https://developer.curity.io/docs/latest/system-admin-guide/system-requirements.html>`_
+* Curity Identity Server 6.6.0 and `its system requirements <https://developer.curity.io/docs/latest/system-admin-guide/system-requirements.html>`_
 * The Entrust logo will only be shown in the Curity admin UI for instances of this authenticator if using version 6.7.3 or newer.
 
 Requirements for Building from Source

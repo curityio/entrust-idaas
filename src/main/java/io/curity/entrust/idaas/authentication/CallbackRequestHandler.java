@@ -29,11 +29,11 @@ import se.curity.identityserver.sdk.errors.ErrorCode;
 import se.curity.identityserver.sdk.http.HttpRequest;
 import se.curity.identityserver.sdk.http.HttpResponse;
 import se.curity.identityserver.sdk.http.MultipleHeadersException;
-import se.curity.identityserver.sdk.service.ExceptionFactory;
 import se.curity.identityserver.sdk.service.HttpClient;
 import se.curity.identityserver.sdk.service.Json;
 import se.curity.identityserver.sdk.service.WebServiceClient;
 import se.curity.identityserver.sdk.service.WebServiceClientFactory;
+import se.curity.identityserver.sdk.service.authentication.AuthenticatorExceptionFactory;
 import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
@@ -59,7 +59,7 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
 {
     private final static Logger _logger = LoggerFactory.getLogger(CallbackRequestHandler.class);
 
-    private final ExceptionFactory _exceptionFactory;
+    private final AuthenticatorExceptionFactory _exceptionFactory;
     private final EntrustAuthenticatorPluginConfig _config;
     private final Json _json;
     private final AuthenticatorInformationProvider _authenticatorInformationProvider;
@@ -322,10 +322,10 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
         {
             if ("access_denied".equals(requestModel.getError()))
             {
-                _logger.debug("Got an error from Entrust: {} - {}", requestModel.getError(), requestModel.getErrorDescription());
+                _logger.debug("Got an error from Entrust: {} - {}", requestModel.getError(),
+                              requestModel.getErrorDescription());
 
-                throw _exceptionFactory.redirectException(
-                        _authenticatorInformationProvider.getAuthenticationBaseUri().toASCIIString());
+                throw _exceptionFactory.authenticationFailedException("Upstream error: " + requestModel.getError());
             }
 
             _logger.warn("Got an error from Entrust: {} - {}", requestModel.getError(), requestModel.getErrorDescription());

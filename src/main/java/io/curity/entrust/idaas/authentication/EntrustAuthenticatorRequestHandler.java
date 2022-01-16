@@ -19,7 +19,6 @@ package io.curity.entrust.idaas.authentication;
 import io.curity.entrust.idaas.config.EntrustAuthenticatorPluginConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.curity.identityserver.sdk.Nullable;
 import se.curity.identityserver.sdk.attribute.Attribute;
 import se.curity.identityserver.sdk.authentication.AuthenticationResult;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
@@ -85,12 +84,11 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
         queryStringArguments.put("response_type", Set.of("code"));
         queryStringArguments.put("scope", Set.of(scope));
 
-        @Nullable
-        String prompt = _config.getOriginalQueryExtractor().getAuthorizationRequestQueryParameterValue("prompt");
+        boolean forceAuthentication = _config.getAuthenticationRequirements().shouldForceAuthentication();
 
-        if (prompt != null && _config.isRelayPrompt())
+        if (forceAuthentication && _config.isRelayPrompt())
         {
-            queryStringArguments.put("prompt", Set.of(prompt));
+            queryStringArguments.put("prompt", Set.of("login"));
         }
 
         String authorizationEndpoint = createIssuerFromEnvironmentAndName(_config) + "/authorize";

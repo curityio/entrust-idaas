@@ -21,12 +21,12 @@ import se.curity.identityserver.sdk.config.OneOf;
 import se.curity.identityserver.sdk.config.annotation.DefaultBoolean;
 import se.curity.identityserver.sdk.config.annotation.DefaultEnum;
 import se.curity.identityserver.sdk.config.annotation.Description;
-import se.curity.identityserver.sdk.service.ExceptionFactory;
 import se.curity.identityserver.sdk.service.HttpClient;
 import se.curity.identityserver.sdk.service.Json;
-import se.curity.identityserver.sdk.service.OriginalQueryExtractor;
 import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.service.WebServiceClientFactory;
+import se.curity.identityserver.sdk.service.authentication.AuthenticationRequirements;
+import se.curity.identityserver.sdk.service.authentication.AuthenticatorExceptionFactory;
 import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public interface EntrustAuthenticatorPluginConfig extends Configuration
 
     SessionManager getSessionManager();
 
-    ExceptionFactory getExceptionFactory();
+    AuthenticatorExceptionFactory getExceptionFactory();
 
     @Description("Additional scopes beyond 'openid' that should be requested")
     List<String> getAdditionalScopes();
@@ -55,7 +55,7 @@ public interface EntrustAuthenticatorPluginConfig extends Configuration
     @Description("Whether or not the prompt parameter should be relayed up to Entrust")
     boolean isRelayPrompt();
 
-    OriginalQueryExtractor getOriginalQueryExtractor();
+    AuthenticationRequirements getAuthenticationRequirements();
 
     IssuerOrEnvironmentAndName getIssuerOrEnvironmentAndName();
 
