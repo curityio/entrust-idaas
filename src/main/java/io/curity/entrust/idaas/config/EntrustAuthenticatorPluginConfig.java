@@ -35,7 +35,7 @@ import java.util.Optional;
 @SuppressWarnings("InterfaceNeverImplemented")
 public interface EntrustAuthenticatorPluginConfig extends Configuration
 {
-	@Description("Client ID")
+    @Description("Client ID")
     String getClientId();
 
     @Description("Secret secret")
