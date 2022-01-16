@@ -1,6 +1,9 @@
 Entrust IDaaS Authenticator Plug-in
 ===================================
 
+.. image:: https://github.com/github/docs/actions/workflows/main.yml/badge.svg
+    :target: https://curity.io/resources/code-examples/status/
+
 This project provides an open source Entrust IDaaS authenticator plug-in for the Curity Identity Server. This allows an administrator to add functionality to Curity which will then enable end users to login using their Entrust credentials.
 
 Curity can be integrated with Entrust IDaaS in multiple ways. This authenticator is only needed when Curity is functioning as a *relay* or OpenID Connect *proxy* between Entrust IDaaS and a downstream client. This setup is shown in the following figure:
