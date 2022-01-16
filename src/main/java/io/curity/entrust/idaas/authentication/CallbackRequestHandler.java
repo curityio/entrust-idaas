@@ -62,7 +62,6 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
     private final AuthenticatorExceptionFactory _exceptionFactory;
     private final EntrustAuthenticatorPluginConfig _config;
     private final Json _json;
-    private final AuthenticatorInformationProvider _authenticatorInformationProvider;
     private final WebServiceClientFactory _webServiceClientFactory;
     private final boolean _isFormPost;
 
@@ -72,7 +71,6 @@ public final class CallbackRequestHandler implements AuthenticatorRequestHandler
         _config = config;
         _json = config.getJson();
         _webServiceClientFactory = config.getWebServiceClientFactory();
-        _authenticatorInformationProvider = config.getAuthenticatorInformationProvider();
         _isFormPost = _config.getAuthenticationMethod() == FORM_POST;
     }
 
