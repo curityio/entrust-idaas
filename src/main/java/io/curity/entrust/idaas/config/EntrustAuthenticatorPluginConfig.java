@@ -51,6 +51,9 @@ public interface EntrustAuthenticatorPluginConfig extends Configuration
     @Description("Additional scopes beyond 'openid' that should be requested")
     List<String> getAdditionalScopes();
 
+    @Description("Additional claims that should be requested beyond 'sub' and those implicitly associated with the requested scopes ")
+    List<String> getAdditionalClaims();
+
     @DefaultBoolean(true)
     @Description("Whether or not the prompt parameter should be relayed up to Entrust")
     boolean isRelayPrompt();

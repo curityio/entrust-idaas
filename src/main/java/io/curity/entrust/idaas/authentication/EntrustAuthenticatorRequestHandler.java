@@ -31,7 +31,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -64,7 +66,7 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
 
         String redirectUri = createRedirectUri(_config);
         String codeVerifier = createCodeVerifier();
-        Map<String, Collection<String>> queryStringArguments = new LinkedHashMap<>(7);
+        Map<String, Collection<String>> queryStringArguments = new LinkedHashMap<>(9);
 
         _config.getSessionManager().put(Attribute.of("code_verifier", codeVerifier));
 
@@ -74,6 +76,18 @@ public final class EntrustAuthenticatorRequestHandler implements AuthenticatorRe
 
         String scope = Stream.concat(_config.getAdditionalScopes().stream(), Stream.of("openid"))
                 .collect(Collectors.joining(" "));
+        List<String> additionalClaims = _config.getAdditionalClaims();
+
+        if (!additionalClaims.isEmpty())
+        {
+            HashMap<String, ?> claims = new HashMap<>();
+
+            additionalClaims.forEach(claimName -> claims.put(claimName, null));
+
+            String encodedClaims = _config.getJson().toJson(Map.of("userinfo", claims), true);
+
+            queryStringArguments.put("claims", Set.of(encodedClaims));
+        }
 
         _logger.trace("Scope that will be requested = {}", scope);
 
