@@ -59,32 +59,46 @@ public interface EntrustAuthenticatorPluginConfig extends Configuration
 
     IssuerOrEnvironmentAndName getIssuerOrEnvironmentAndName();
 
+    @Description("The authentication method to use at the token endpoint")
     @DefaultEnum("BASIC")
     AuthenticationMethod getAuthenticationMethod();
 
     enum AuthenticationMethod
     {
-        BASIC, FORM_POST
+        @Description("Use basic authentication")
+        BASIC,
+
+        @Description("Include the client ID and secret in the form body")
+        FORM_POST
     }
 
     interface IssuerOrEnvironmentAndName extends OneOf
     {
+        @Description("The URL of the issuer")
         Optional<String> getIssuer();
 
+        @Description("The name and region of the environment of the issuer")
         Optional<EnvironmentAndName> getEnvironmentAndName();
     }
 
     enum Environment
     {
+        @Description("Issuer is hosted in Germany")
         GERMANY,
+
+        @Description("Issuer is hosted in the US")
         US,
+
+        @Description("Issuer is hosted in Ireland")
         IRELAND
     }
 
     interface EnvironmentAndName
     {
+        @Description("The region or environment where the issuer is hosted")
         Environment getEnvironment();
 
+        @Description("The name of the issuer")
         String getName();
     }
 
