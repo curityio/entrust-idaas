@@ -101,19 +101,20 @@ The easiest way to configure a new Entrust authenticator is using the Curity adm
 6. In the ``Client ID`` text field, enter the ``Client ID`` from the Entrust IDaaS client application.
 7. Also enter the matching ``Client Secret``.
 8. If you wish to request additional scopes from Entrust IDaaS, enter each one in the ``Additional Scopes`` multi-select widget (e.g., ``address`` or ``profile``).
-9. The ``Authentication Method`` should match the configuration for the client in Entrust IDaaS. The default is ``basic`` authentication.
-10. If ``Relay Prompt`` is configured and an OAuth client sends a ``prompt`` to the Curity OAuth server, then this parameter will be forwarded upstream to Entrust IDaaS.
-11. In the ``Issuer or Environment and Name`` dropdown select and configure one of the following:
+9. If you wish to request additional scopes from Entrust IDaaS, enter each one in the ``Additional Scopes`` multi-select widget (e.g., ``address`` or ``profile``).
+10. The ``Authentication Method`` should match the configuration for the client in Entrust IDaaS. The default is ``basic`` authentication.
+11. If ``Relay Prompt`` is configured and an OAuth client sends a ``prompt`` to the Curity OAuth server, then this parameter will be forwarded upstream to Entrust IDaaS.
+12. In the ``Issuer or Environment and Name`` dropdown select and configure one of the following:
 
     A. ``environment-and-name`` can be selected and one of the environments where your Entrust IDaaS is hosted should be selected. In this case, the instance name also has to be configured.
     B. ``issuer`` can be selected and the Entrust IDaaS OpenID Connect issuer URL can be configured.
 
-12. To rely only on the SSO session stored in Entrust IDaaS, do the following:
+13. To rely only on the SSO session stored in Entrust IDaaS, do the following:
 
     A. Click ``Advanced`` to expand the advanced settings.
     B. In the ``SSO Expiration Time`` text field, enter ``0``.
 
-12. Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally, enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
+14. Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally, enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
 
 Once the configuration is committed and running, the authenticator can be used like any other.
 
