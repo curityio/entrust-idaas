@@ -34,7 +34,6 @@ import se.curity.identityserver.sdk.service.Json;
 import se.curity.identityserver.sdk.service.WebServiceClient;
 import se.curity.identityserver.sdk.service.WebServiceClientFactory;
 import se.curity.identityserver.sdk.service.authentication.AuthenticatorExceptionFactory;
-import se.curity.identityserver.sdk.service.authentication.AuthenticatorInformationProvider;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
 
