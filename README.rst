@@ -1,6 +1,12 @@
 Entrust IDaaS Authenticator Plug-in
 ===================================
 
+.. image:: https://img.shields.io/badge/quality-production-green
+    :target: https://curity.io/resources/code-examples/status/
+
+.. image:: https://img.shields.io/badge/availability-bundled-green
+    :target: https://curity.io/resources/code-examples/status/
+
 .. image:: https://github.com/curityio/entrust-idaas/actions/workflows/maven.yml/badge.svg?branch=main
     :target: https://curity.io/resources/code-examples/status/
 
